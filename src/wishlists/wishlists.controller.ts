@@ -1,34 +1,72 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Req,
+  BadRequestException,
+  UseInterceptors,
+  ClassSerializerInterceptor,
+} from '@nestjs/common';
 import { WishlistsService } from './wishlists.service';
+import { Wishlist } from './entities/wishlist.entity';
+import { JwtGuard } from '../auth/jwt-auth.guard';
+import {
+  wishlistDeletionNotAllowed,
+  wishlistEditNotAllowed,
+} from '../utils/constants';
 import { CreateWishlistDto } from './dto/create-wishlist.dto';
 import { UpdateWishlistDto } from './dto/update-wishlist.dto';
 
-@Controller('wishlists')
+@UseInterceptors(ClassSerializerInterceptor)
+@UseGuards(JwtGuard)
+@Controller('wishlistlists')
 export class WishlistsController {
   constructor(private readonly wishlistsService: WishlistsService) {}
 
-  @Post()
-  create(@Body() createWishlistDto: CreateWishlistDto) {
-    return this.wishlistsService.create(createWishlistDto);
-  }
-
   @Get()
-  findAll() {
+  async findAll(): Promise<Wishlist[]> {
     return this.wishlistsService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.wishlistsService.findOne(+id);
+  @Post()
+  async createWishlist(
+    @Req() req,
+    @Body() wishlist: Wishlist,
+  ): Promise<CreateWishlistDto> {
+    return this.wishlistsService.createWishlist(req.user, wishlist);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateWishlistDto: UpdateWishlistDto) {
-    return this.wishlistsService.update(+id, updateWishlistDto);
+  async update(
+    @Req() req,
+    @Param('id') id: number,
+    @Body() wishlist: Wishlist,
+  ): Promise<UpdateWishlistDto> {
+    const wishlistToBeUpdated = await this.wishlistsService.findOne(id);
+    if (wishlistToBeUpdated.owner.id === req.user.id) {
+      return this.wishlistsService.update(id, wishlist);
+    } else {
+      throw new BadRequestException(`${wishlistEditNotAllowed}`);
+    }
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.wishlistsService.remove(+id);
+  async remove(@Req() req, @Param('id') id: number): Promise<any> {
+    const wishlist = await this.wishlistsService.findOne(id);
+    if (wishlist.owner.id === req.user.id) {
+      return this.wishlistsService.remove(id);
+    } else {
+      throw new BadRequestException(`${wishlistDeletionNotAllowed}`);
+    }
+  }
+
+  @Get(':id')
+  async findOne(@Param('id') id: number): Promise<Wishlist> {
+    return await this.wishlistsService.findOne(id);
   }
 }

@@ -1,16 +1,24 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+  OneToMany,
+} from 'typeorm';
 import { User } from '../../users/entities/user.entity';
-import { Length } from 'class-validator';
+import { IsEmail, IsNumber, Length } from 'class-validator';
+import { Offer } from '../../offers/entities/offer.entity';
 
 @Entity()
 export class Wish {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @CreateDateColumn({ default: () => 'NOW()' })
   createdAt: Date;
 
-  @Column()
+  @CreateDateColumn({ default: () => 'NOW()' })
   updatedAt: Date;
 
   @Column()
@@ -21,29 +29,28 @@ export class Wish {
   link: string;
 
   @Column()
+  @IsEmail()
   image: string;
-  //valid URL link
 
   @Column()
+  @IsNumber({ maxDecimalPlaces: 2 })
   price: number;
-  //rounded ,00
 
   @Column()
+  @IsNumber({ maxDecimalPlaces: 2 })
   raised: number;
-  //rounded ,00
 
   @ManyToOne(() => User, (user) => user.wishes)
   owner: User;
+
+  @OneToMany(() => Offer, (offer) => offer.item)
+  offers: Offer[];
 
   @Column()
   @Length(1, 1024)
   description: string;
 
   @Column()
-  offers: string[];
-  //массив ссылок на заявки скинуться от других пользователей
-
-  @Column()
+  @IsNumber({ maxDecimalPlaces: 0 })
   copied: number;
-  //целое десятичное
 }

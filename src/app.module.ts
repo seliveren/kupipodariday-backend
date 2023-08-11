@@ -1,22 +1,22 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { WishesModule } from './wishes/wishes.module';
 import { WishlistsModule } from './wishlists/wishlists.module';
 import { OffersModule } from './offers/offers.module';
-import { UsersController } from './users/users.controller';
-import { WishesController } from './wishes/wishes.controller';
-import { WishlistsController } from './wishlists/wishlists.controller';
-import { OffersController } from './offers/offers.controller';
-import { UsersService } from './users/users.service';
-import { WishesService } from './wishes/wishes.service';
-import { WishlistsService } from './wishlists/wishlists.service';
-import { OffersService } from './offers/offers.service';
+import { User } from './users/entities/user.entity';
+import { Wish } from './wishes/entities/wish.entity';
+import { Wishlist } from './wishlists/entities/wishlist.entity';
+import { Offer } from './offers/entities/offer.entity';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
+    UsersModule,
+    WishesModule,
+    WishlistsModule,
+    OffersModule,
+    AuthModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
@@ -24,27 +24,11 @@ import { OffersService } from './offers/offers.service';
       username: 'student',
       password: 'student',
       database: 'nest_project',
-      entities: [],
+      entities: [User, Wish, Wishlist, Offer],
       synchronize: true,
     }),
-    UsersModule,
-    WishesModule,
-    WishlistsModule,
-    OffersModule,
   ],
-  controllers: [
-    AppController,
-    UsersController,
-    WishesController,
-    WishlistsController,
-    OffersController,
-  ],
-  providers: [
-    AppService,
-    UsersService,
-    WishesService,
-    WishlistsService,
-    OffersService,
-  ],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}

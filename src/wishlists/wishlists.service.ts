@@ -1,26 +1,66 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Wishlist } from './entities/wishlist.entity';
+import { User } from '../users/entities/user.entity';
+import { WishesService } from '../wishes/wishes.service';
+import { wishlistNotFound, wishlistsNotFound } from '../utils/constants';
 import { CreateWishlistDto } from './dto/create-wishlist.dto';
-import { UpdateWishlistDto } from './dto/update-wishlist.dto';
+import { UpdateWishDto } from '../wishes/dto/update-wish.dto';
 
 @Injectable()
 export class WishlistsService {
-  create(createWishlistDto: CreateWishlistDto) {
-    return 'This action adds a new wishlist';
+  constructor(
+    @InjectRepository(Wishlist)
+    private wishlistRepository: Repository<Wishlist>,
+    private wishesRepository: WishesService,
+  ) {}
+
+  async findOne(id: number): Promise<Wishlist> {
+    const wishlist = await this.wishlistRepository.findOne({
+      where: {
+        id: id,
+      },
+      relations: {
+        owner: true,
+        items: true,
+      },
+    });
+    if (!wishlist) {
+      throw new NotFoundException(`${wishlistNotFound}`);
+    }
+    return wishlist;
   }
 
-  findAll() {
-    return `This action returns all wishlists`;
+  async findAll(): Promise<Wishlist[]> {
+    const wishlists = await this.wishlistRepository.find();
+    if (!wishlists) {
+      throw new NotFoundException(`${wishlistsNotFound}`);
+    }
+    return wishlists;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} wishlist`;
+  async createWishlist(user: User, wishlist): Promise<CreateWishlistDto> {
+    const fullItemsInfo = [];
+    for (const el of wishlist.itemsId) {
+      const wish = await this.wishesRepository.findOne(el);
+      fullItemsInfo.push(wish);
+    }
+    wishlist.owner = user;
+    wishlist.items = fullItemsInfo;
+    return this.wishlistRepository.save(wishlist);
   }
 
-  update(id: number, updateWishlistDto: UpdateWishlistDto) {
-    return `This action updates a #${id} wishlist`;
+  async update(
+    id: number,
+    wishlist: Partial<Wishlist>,
+  ): Promise<UpdateWishDto> {
+    wishlist.updatedAt = new Date();
+    await this.wishlistRepository.update(id, wishlist);
+    return this.wishlistRepository.findOne({ where: { id } });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} wishlist`;
+  async remove(id: number): Promise<void> {
+    await this.wishlistRepository.delete(id);
   }
 }

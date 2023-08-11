@@ -1,6 +1,15 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Length } from 'class-validator';
 import { User } from '../../users/entities/user.entity';
+import { Wish } from '../../wishes/entities/wish.entity';
 
 @Entity()
 export class Wishlist {
@@ -8,27 +17,26 @@ export class Wishlist {
   id: number;
 
   @ManyToOne(() => User, (user) => user.wishlists)
-  user: number;
-  //id cоздавшего список?
+  owner: User;
 
-  @Column()
+  @CreateDateColumn({ default: () => 'NOW()' })
   createdAt: Date;
 
-  @Column()
+  @CreateDateColumn({ default: () => 'NOW()' })
   updatedAt: Date;
 
   @Column()
   @Length(1, 250)
   name: string;
 
-  @Column()
+  @Column({ default: ' ' })
   @Length(0, 1500)
   description: string;
 
   @Column()
   image: string;
 
-  @Column()
-  items: string[];
-  //содержит набор ссылок на подарки
+  @ManyToMany(() => Wish, (wish) => wish.name)
+  @JoinTable()
+  items: Wish[];
 }

@@ -1,42 +1,78 @@
 import {
+  Body,
+  ClassSerializerInterceptor,
   Controller,
   Get,
-  Post,
-  Body,
-  Patch,
+  NotFoundException,
   Param,
-  Delete,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
+import { User } from './entities/user.entity';
+import { JwtGuard } from '../auth/jwt-auth.guard';
+import { Wish } from '../wishes/entities/wish.entity';
+import { userNotFound } from '../utils/constants';
 import { UpdateUserDto } from './dto/update-user.dto';
 
+@UseInterceptors(ClassSerializerInterceptor)
+@UseGuards(JwtGuard)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+  @Get('me')
+  async viewProfile(@Req() req): Promise<User> {
+    if (!req.user) {
+      throw new NotFoundException(`${userNotFound}`);
+    } else {
+      return req.user;
+    }
   }
 
-  @Get()
-  findAll() {
-    return this.usersService.findAll();
+  @Patch('me')
+  async editProfile(@Req() req, @Body() user: User): Promise<UpdateUserDto> {
+    if (!req.user) {
+      throw new NotFoundException(`${userNotFound}`);
+    } else {
+      return await this.usersService.update(req.user.id, user);
+    }
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  @Get('me/wishes')
+  async viewCurrentUsersWishes(@Req() req): Promise<Wish[]> {
+    if (!req.user) {
+      throw new NotFoundException(`${userNotFound}`);
+    } else {
+      return await this.usersService.findWishes(req.user.id);
+    }
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  @Get(':username/wishes')
+  async viewUsersWishes(@Param('username') username: string): Promise<Wish[]> {
+    const user = await this.usersService.findByUsername(username);
+    if (!user) {
+      throw new NotFoundException(`${userNotFound}`);
+    } else {
+      return await this.usersService.findWishes(user.id);
+    }
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+  @Get(':username')
+  async viewOthersProfile(@Param('username') username: string): Promise<User> {
+    const user = await this.usersService.findByUsername(username);
+    if (!user) {
+      throw new NotFoundException(`${userNotFound}`);
+    } else {
+      return user;
+    }
+  }
+
+  @Post('find')
+  async findUserByEmailOrUsername(@Body() { query }): Promise<User[]> {
+    return this.usersService.find(query);
   }
 }
