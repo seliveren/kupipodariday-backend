@@ -1,6 +1,5 @@
 export const wishNotFound = 'Такого подарка не существует!';
 export const wishesNotFound = 'Подарков нет!';
-export const priceEditNotAllowed = 'Уже нельзя редактировать стоимость!';
 export const priceEditAfterOffersNotAllowed =
   'Нельзя редактировать цену подарков, когда уже есть взносы!';
 export const wishEditNotAllowed = 'Нельзя редактировать чужие подарки!';
@@ -12,7 +11,7 @@ export const wishlistDeletionNotAllowed = 'Нельзя удалять чужи�
 export const offersNotFound = 'Заявок нет!';
 export const offerNotFound = 'Такой заявки не существует!';
 export const offerNotAllowed = 'Нельзя скидываться на свой же подарок!';
-export const noMoreOffers = 'На подарок уже накоплено!';
+export const noMoreOffers = 'Сумма взноса превышает требуемую сумму!';
 export const userNotFound = 'Такого пользователя не существует!';
 export const usernameAlreadyExists = 'Такой username уже существует!';
 export const emailAlreadyExists = 'Такой email уже существует!';

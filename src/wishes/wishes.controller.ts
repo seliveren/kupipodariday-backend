@@ -23,16 +23,9 @@ import {
 import { UpdateWishDto } from './dto/update-wish.dto';
 import { CreateWishDto } from './dto/create-wish.dto';
 
-@UseInterceptors(ClassSerializerInterceptor)
 @Controller('wishes')
 export class WishesController {
   constructor(private readonly wishesService: WishesService) {}
-
-  @UseGuards(JwtGuard)
-  @Post()
-  async create(@Req() req, @Body() wish: Wish): Promise<CreateWishDto> {
-    return this.wishesService.createWish(req.user, wish);
-  }
 
   @Get('last')
   async findLast(): Promise<Wish[]> {
@@ -49,12 +42,21 @@ export class WishesController {
     return this.wishesService.findAll();
   }
 
+  @UseInterceptors(ClassSerializerInterceptor)
+  @UseGuards(JwtGuard)
+  @Post()
+  async create(@Req() req, @Body() wish: Wish): Promise<CreateWishDto> {
+    return this.wishesService.createWish(req.user, wish);
+  }
+
+  @UseInterceptors(ClassSerializerInterceptor)
   @UseGuards(JwtGuard)
   @Get(':id')
   async findWishByID(@Req() req, @Param('id') id: number): Promise<Wish> {
     return this.wishesService.findOne(id);
   }
 
+  @UseInterceptors(ClassSerializerInterceptor)
   @UseGuards(JwtGuard)
   @Patch(':id')
   async update(
@@ -74,6 +76,7 @@ export class WishesController {
     }
   }
 
+  @UseInterceptors(ClassSerializerInterceptor)
   @UseGuards(JwtGuard)
   @Delete(':id')
   async remove(@Req() req, @Param('id') id: number): Promise<any> {
@@ -85,6 +88,7 @@ export class WishesController {
     }
   }
 
+  @UseInterceptors(ClassSerializerInterceptor)
   @UseGuards(JwtGuard)
   @Post(':id/copy')
   async copyWish(@Req() req, @Param('id') id: number): Promise<any> {

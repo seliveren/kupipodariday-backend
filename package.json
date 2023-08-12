@@ -1,7 +1,7 @@
 {
   "name": "kupipodariday-backend",
   "version": "0.0.1",
-  "description": "",
+  "description": "the backend part of kupipodariday project",
   "author": "Yulia Selivanova",
   "private": true,
   "license": "UNLICENSED",
